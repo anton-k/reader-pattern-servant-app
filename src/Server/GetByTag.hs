@@ -12,12 +12,6 @@ data GetByTagEnv = GetByTagEnv
   , log :: ILogVar
   }
 
-instance HasDb GetByTagEnv where
-  getDb env = env.db
-
-instance HasLog GetByTagEnv where
-  getLog env = env.log
-
 -----------------------------------------
 -- Handler
 

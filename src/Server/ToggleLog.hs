@@ -11,9 +11,6 @@ data ToggleLogEnv = ToggleLogEnv
   { log :: ILogVar
   }
 
-instance HasLog ToggleLogEnv where
-  getLog env = env.log
-
 -----------------------------------------
 -- Handler
 
