@@ -31,4 +31,4 @@ runServer config = do
 
   ILog{..} <- readLogVar env.log
   logInfo $ "Start server on http://localhost:" <> display config.port
-  liftIO $ run config.port $ serve (Proxy :: Proxy Api) (server env)
+  run config.port $ serve (Proxy :: Proxy Api) (server env)
