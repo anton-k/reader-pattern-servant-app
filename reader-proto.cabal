@@ -76,6 +76,7 @@ library
       ScopedTypeVariables
       StandaloneDeriving
       TupleSections
+      TypeApplications
       TypeFamilies
       TypeSynonymInstances
       TypeOperators
@@ -142,6 +143,7 @@ executable reader-proto-exe
       ScopedTypeVariables
       StandaloneDeriving
       TupleSections
+      TypeApplications
       TypeFamilies
       TypeSynonymInstances
       TypeOperators
@@ -208,6 +210,7 @@ test-suite reader-proto-test
       ScopedTypeVariables
       StandaloneDeriving
       TupleSections
+      TypeApplications
       TypeFamilies
       TypeSynonymInstances
       TypeOperators

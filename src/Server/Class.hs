@@ -1,7 +1,7 @@
 module Server.Class
-  ( HasDb(..)
-  , HasTime(..)
-  , HasLog(..)
+  ( HasDb
+  , HasTime
+  , HasLog
   , module X
   , askDb
   , askTime
@@ -13,24 +13,22 @@ import Control.Monad.Reader as X
 import Control.Monad.Except as X
 import Server.Env
 import Types
+import GHC.Records (HasField(..))
 
-class HasDb env where
-  getDb :: env -> IDb
+-- type classes to specify which interface environment has
 
-class HasTime env where
-  getTime :: env -> ITime
-
-class HasLog env where
-  getLog :: env -> ILogVar
+type HasDb   env = HasField "db" env IDb
+type HasTime env = HasField "time" env ITime
+type HasLog  env = HasField "log" env ILogVar
 
 -- helpers
 
 askDb :: HasDb env => App env IDb
-askDb = asks getDb
+askDb = asks (.db)
 
 askTime :: HasTime env => App env ITime
-askTime = asks getTime
+askTime = asks (.time)
 
 askLog :: HasLog env => App env ILog
-askLog = liftIO . readLogVar =<< asks getLog
+askLog = liftIO . readLogVar =<< asks (.log)
 

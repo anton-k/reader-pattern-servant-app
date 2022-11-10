@@ -15,15 +15,6 @@ data SaveEnv = SaveEnv
   , time  :: ITime
   }
 
-instance HasLog SaveEnv where
-  getLog env = env.log
-
-instance HasDb SaveEnv where
-  getDb env = env.db
-
-instance HasTime SaveEnv where
-  getTime env = env.time
-
 -----------------------------------------
 -- Handler
 
