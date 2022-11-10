@@ -39,48 +39,18 @@ library
   hs-source-dirs:
       src
   default-extensions:
-      BangPatterns
-      BinaryLiterals
-      ConstraintKinds
       DataKinds
-      DefaultSignatures
-      DeriveDataTypeable
-      DeriveFoldable
-      DeriveFunctor
       DeriveGeneric
-      DeriveTraversable
       DerivingVia
-      DoAndIfThenElse
       DuplicateRecordFields
-      EmptyDataDecls
-      ExistentialQuantification
+      ConstraintKinds
       FlexibleContexts
-      FlexibleInstances
-      FunctionalDependencies
-      GADTs
       GeneralizedNewtypeDeriving
       ImportQualifiedPost
-      InstanceSigs
-      KindSignatures
-      LambdaCase
-      MultiParamTypeClasses
-      MultiWayIf
-      NamedFieldPuns
       OverloadedStrings
       OverloadedRecordDot
-      PartialTypeSignatures
-      PatternGuards
-      PolyKinds
-      RankNTypes
       RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
-      TupleSections
-      TypeApplications
-      TypeFamilies
-      TypeSynonymInstances
       TypeOperators
-      ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       aeson
@@ -106,48 +76,18 @@ executable reader-proto-exe
   hs-source-dirs:
       app
   default-extensions:
-      BangPatterns
-      BinaryLiterals
-      ConstraintKinds
       DataKinds
-      DefaultSignatures
-      DeriveDataTypeable
-      DeriveFoldable
-      DeriveFunctor
       DeriveGeneric
-      DeriveTraversable
       DerivingVia
-      DoAndIfThenElse
       DuplicateRecordFields
-      EmptyDataDecls
-      ExistentialQuantification
+      ConstraintKinds
       FlexibleContexts
-      FlexibleInstances
-      FunctionalDependencies
-      GADTs
       GeneralizedNewtypeDeriving
       ImportQualifiedPost
-      InstanceSigs
-      KindSignatures
-      LambdaCase
-      MultiParamTypeClasses
-      MultiWayIf
-      NamedFieldPuns
       OverloadedStrings
       OverloadedRecordDot
-      PartialTypeSignatures
-      PatternGuards
-      PolyKinds
-      RankNTypes
       RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
-      TupleSections
-      TypeApplications
-      TypeFamilies
-      TypeSynonymInstances
       TypeOperators
-      ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -173,48 +113,18 @@ test-suite reader-proto-test
   hs-source-dirs:
       test
   default-extensions:
-      BangPatterns
-      BinaryLiterals
-      ConstraintKinds
       DataKinds
-      DefaultSignatures
-      DeriveDataTypeable
-      DeriveFoldable
-      DeriveFunctor
       DeriveGeneric
-      DeriveTraversable
       DerivingVia
-      DoAndIfThenElse
       DuplicateRecordFields
-      EmptyDataDecls
-      ExistentialQuantification
+      ConstraintKinds
       FlexibleContexts
-      FlexibleInstances
-      FunctionalDependencies
-      GADTs
       GeneralizedNewtypeDeriving
       ImportQualifiedPost
-      InstanceSigs
-      KindSignatures
-      LambdaCase
-      MultiParamTypeClasses
-      MultiWayIf
-      NamedFieldPuns
       OverloadedStrings
       OverloadedRecordDot
-      PartialTypeSignatures
-      PatternGuards
-      PolyKinds
-      RankNTypes
       RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
-      TupleSections
-      TypeApplications
-      TypeFamilies
-      TypeSynonymInstances
       TypeOperators
-      ViewPatterns
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
