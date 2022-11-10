@@ -18,10 +18,12 @@ import Servant.API (FromHttpApiData)
 type Url = String
 type ApiError = Text
 
-type App env a = ReaderT env (ExceptT ApiError IO) a
+newtype App env a = App (ReaderT env (ExceptT ApiError IO) a)
+  deriving
+    newtype (Functor, Applicative, Monad, MonadReader env, MonadError ApiError, MonadIO)
 
 runApp :: App env a -> env -> IO (Either ApiError a)
-runApp a env = runExceptT $ runReaderT a env
+runApp (App a) env = runExceptT $ runReaderT a env
 
 newtype MessageId = MessageId { unMessageId :: Int }
   deriving newtype (ToJSON, FromJSON, Show, Eq, Ord, FromHttpApiData)
