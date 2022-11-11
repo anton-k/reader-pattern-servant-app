@@ -61,7 +61,7 @@ renderFxErrForPublicAsPlainText = \case
 
 startEnv :: Handle -> Int -> Db -> Timer -> IO Env
 startEnv loggerHandle verbosity db timer =
-  Env db timer <$> Logger.acquire loggerHandle verbosity
+  Env db timer <$> Logger.start loggerHandle verbosity
 
 -- ** Injections
 

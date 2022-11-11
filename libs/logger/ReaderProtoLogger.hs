@@ -1,6 +1,6 @@
 module ReaderProtoLogger
   ( Logger,
-    acquire,
+    start,
     inContext,
     writeDebug,
     writeInfo,
@@ -24,8 +24,8 @@ data Logger = Logger
 
 -- | Initialize an implementation that logs into the provided system handle.
 -- The handle can be a file or an output stream like 'stderr' or 'stdout'.
-acquire :: Handle -> Int -> IO Logger
-acquire handle initialVerbosity = do
+start :: Handle -> Int -> IO Logger
+start handle initialVerbosity = do
   maxVerbosityVar <- newMVar initialVerbosity
   return $ Logger maxVerbosityVar write []
   where
