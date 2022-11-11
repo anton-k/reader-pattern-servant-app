@@ -1,6 +1,10 @@
 module ReaderProtoMockDb
   ( MockDb,
     start,
+
+    -- * Effects
+    runFx,
+    Fx,
     insert,
     lookup,
     lookupByTag,
@@ -24,15 +28,24 @@ data Message = Message
 start :: IO MockDb
 start = MockDb <$> newTVarIO mempty
 
-insert :: MockDb -> Message -> IO Int
-insert db msg = atomically $ do
-  msgId <- Map.size <$> readTVar db.map
-  modifyTVar' db.map (Map.insert msgId msg)
-  pure msgId
+-- * Effects
 
-lookup :: MockDb -> Int -> IO (Maybe Message)
-lookup db msgId = Map.lookup msgId <$> readTVarIO db.map
+runFx :: MockDb -> Fx a -> IO a
+runFx db fx = runReaderT fx db
 
-lookupByTag :: MockDb -> Text -> IO [Message]
-lookupByTag db tag =
+type Fx = ReaderT MockDb IO
+
+insert :: Message -> Fx Int
+insert msg = ReaderT $ \db ->
+  atomically $ do
+    msgId <- Map.size <$> readTVar db.map
+    modifyTVar' db.map (Map.insert msgId msg)
+    pure msgId
+
+lookup :: Int -> Fx (Maybe Message)
+lookup msgId = ReaderT $ \db ->
+  Map.lookup msgId <$> readTVarIO db.map
+
+lookupByTag :: Text -> Fx [Message]
+lookupByTag tag = ReaderT $ \db ->
   filter (\msg -> elem tag msg.tags) . Map.elems <$> readTVarIO db.map
