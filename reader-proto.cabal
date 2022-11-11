@@ -1,142 +1,146 @@
-cabal-version: 1.12
+cabal-version:      3.0
+name:               reader-proto
+version:            0
+extra-source-files: README.md
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
---
--- see: https://github.com/sol/hpack
+common base-settings
+  default-language:   Haskell2010
+  default-extensions:
+    NoImplicitPrelude
+    BangPatterns
+    BinaryLiterals
+    ConstraintKinds
+    DataKinds
+    DefaultSignatures
+    DeriveDataTypeable
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveTraversable
+    DerivingVia
+    DoAndIfThenElse
+    DuplicateRecordFields
+    EmptyDataDecls
+    ExistentialQuantification
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    GADTs
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    InstanceSigs
+    KindSignatures
+    LambdaCase
+    MultiParamTypeClasses
+    MultiWayIf
+    NamedFieldPuns
+    OverloadedStrings
+    PackageImports
+    PartialTypeSignatures
+    PatternGuards
+    PolyKinds
+    RankNTypes
+    RecordWildCards
+    ScopedTypeVariables
+    StandaloneDeriving
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+    TypeSynonymInstances
+    ViewPatterns
+    NoFieldSelectors
+    OverloadedRecordDot
 
-name:           reader-proto
-version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/reader-proto#readme>
-homepage:       https://github.com/githubuser/reader-proto#readme
-bug-reports:    https://github.com/githubuser/reader-proto/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2022 Author name here
-license:        BSD3
-license-file:   LICENSE
-build-type:     Simple
-extra-source-files:
-    README.md
-    CHANGELOG.md
+common executable-settings
+  import:      base-settings
+  ghc-options: -O2 -threaded -rtsopts "-with-rtsopts=-N -I0 -qg"
 
-source-repository head
-  type: git
-  location: https://github.com/githubuser/reader-proto
+library reader-proto-base
+  import:          base-settings
+  hs-source-dirs:  libs/base
+  exposed-modules: ReaderProtoBase.Prelude
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , mtl
+    , stm
+    , text
+    , time
+    , transformers
 
-library
+library reader-proto-api
+  import:          base-settings
+  hs-source-dirs:  libs/api
   exposed-modules:
-      Api
-      Server
-      Server.Class
-      Server.Env
-      Server.GetById
-      Server.GetByTag
-      Server.Save
-      Server.ToggleLog
-      Types
-  other-modules:
-      Paths_reader_proto
-  hs-source-dirs:
-      src
-  default-extensions:
-      DataKinds
-      DeriveGeneric
-      DerivingVia
-      DuplicateRecordFields
-      ConstraintKinds
-      FlexibleContexts
-      GeneralizedNewtypeDeriving
-      ImportQualifiedPost
-      OverloadedStrings
-      OverloadedRecordDot
-      RecordWildCards
-      TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
-  build-depends:
-      aeson
-    , base >=4.7 && <5
-    , bytestring
-    , containers
-    , deriving-aeson
-    , mtl
-    , servant
-    , servant-server
-    , stm
-    , text
-    , time
-  default-language: Haskell2010
+    ReaderProtoApi
+    ReaderProtoApi.Model
 
-executable reader-proto-exe
-  main-is: Main.hs
-  other-modules:
-      DI.Db
-      DI.Log
-      DI.Time
-      Paths_reader_proto
-  hs-source-dirs:
-      app
-  default-extensions:
-      DataKinds
-      DeriveGeneric
-      DerivingVia
-      DuplicateRecordFields
-      ConstraintKinds
-      FlexibleContexts
-      GeneralizedNewtypeDeriving
-      ImportQualifiedPost
-      OverloadedStrings
-      OverloadedRecordDot
-      RecordWildCards
-      TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
-    , base >=4.7 && <5
+    , aeson
+    , base
     , bytestring
     , containers
     , deriving-aeson
-    , mtl
-    , reader-proto
+    , reader-proto-base
     , servant
     , servant-server
     , stm
     , text
     , time
+    , transformers
     , warp
-  default-language: Haskell2010
 
-test-suite reader-proto-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_reader_proto
-  hs-source-dirs:
-      test
-  default-extensions:
-      DataKinds
-      DeriveGeneric
-      DerivingVia
-      DuplicateRecordFields
-      ConstraintKinds
-      FlexibleContexts
-      GeneralizedNewtypeDeriving
-      ImportQualifiedPost
-      OverloadedStrings
-      OverloadedRecordDot
-      RecordWildCards
-      TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+library reader-proto-service
+  import:          base-settings
+  hs-source-dirs:  libs/service
+  exposed-modules: ReaderProtoService
+  other-modules:   ReaderProtoService.Service
   build-depends:
-      aeson
-    , base >=4.7 && <5
+    , base
     , bytestring
     , containers
-    , deriving-aeson
-    , mtl
-    , reader-proto
-    , servant
-    , servant-server
+    , reader-proto-api
+    , reader-proto-base
+    , reader-proto-logger
     , stm
     , text
     , time
-  default-language: Haskell2010
+    , transformers
+
+library reader-proto-logger
+  import:          base-settings
+  hs-source-dirs:  libs/logger
+  exposed-modules: ReaderProtoLogger
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , reader-proto-base
+    , stm
+    , text
+    , time
+    , transformers
+
+-- Specific database. Completely decoupled.
+-- Knows nothing about our service logic or routing.
+library reader-proto-mock-db
+  import:          base-settings
+  hs-source-dirs:  libs/mock-db
+  exposed-modules: ReaderProtoMockDb
+  build-depends:
+    , base
+    , containers
+    , reader-proto-base
+    , text
+    , transformers
+
+executable reader-proto-mocking-server
+  import:         executable-settings
+  hs-source-dirs: apps/mocking-server
+  main-is:        Main.hs
+  build-depends:
+    , reader-proto-base
+    , reader-proto-mock-db
+    , reader-proto-service
