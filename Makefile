@@ -28,5 +28,14 @@ get-tag:
 toggle-log:
 	curl http://localhost:7070/api/v1/toggle-logs -d '{}' -v -H "Content-Type: application/json"
 
+# generate dependency tree
+# install graphviz (brew, apt) and calligraphy (cabal install)
 
+gen-deps-src:
+	cabal build --ghc-options=-fwrite-ide-info
+	calligraphy src/**/*.hs -p deps/app-out.png --collapse-modules --no-cluster-modules
+
+gen-deps-app:
+	cabal build --ghc-options=-fwrite-ide-info
+	calligraphy app/**/*.hs -p deps/app-out.png --collapse-modules --no-cluster-modules
 

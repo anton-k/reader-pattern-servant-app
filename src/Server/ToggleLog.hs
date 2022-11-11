@@ -1,28 +1,24 @@
+-- | Toggle logs handler
 module Server.ToggleLog
-  ( ToggleLogEnv(..)
-  , handleToggleLog
+  ( Env(..)
+  , handle
   ) where
 
-import Server.Class
-import Server.Env
+import DI.Log
 import Types
 
-data ToggleLogEnv = ToggleLogEnv
-  { log :: ILogVar
+data Env = Env
+  { log :: LogVar
   }
 
 -----------------------------------------
 -- Handler
 
-handleToggleLog :: App ToggleLogEnv ()
-handleToggleLog = do
-  ILog{..} <- askLog
+handle :: App Env ()
+handle = do
+  Log{..} <- askLog
 
   env <- ask
   liftIO $ do
     logInfo "toggle log call"
     toggleLog env.log
-
-
-
-

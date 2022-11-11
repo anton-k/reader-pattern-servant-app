@@ -1,24 +1,29 @@
+-- | Get by tag handler
 module Server.GetByTag
-  ( GetByTagEnv(..)
-  , handleGetByTag
+  ( Env(..)
+  , Db(..)
+  , handle
   ) where
 
-import Server.Class
-import Server.Env
+import DI.Log
 import Types
 
-data GetByTagEnv = GetByTagEnv
-  { db  :: IDb
-  , log :: ILogVar
+data Env = Env
+  { db  :: Db
+  , log :: LogVar
+  }
+
+data Db = Db
+  { getByTag :: Tag -> IO [Message]
   }
 
 -----------------------------------------
 -- Handler
 
-handleGetByTag :: Tag -> App GetByTagEnv [Message]
-handleGetByTag tag = do
-  IDb{..}  <- askDb
-  ILog{..} <- askLog
+handle :: Tag -> App Env [Message]
+handle tag = do
+  Db{..}   <- asks (.db)
+  Log{..} <- askLog
 
   liftIO $ do
     logInfo $ "get by tag call: " <> display tag
