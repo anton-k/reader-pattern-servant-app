@@ -1,7 +1,13 @@
 module ReaderProtoLogger
   ( Logger,
     start,
+
+    -- * Modification
     inContext,
+
+    -- * Effects
+    runFx,
+    Fx,
     writeDebug,
     writeInfo,
     writeWarn,
@@ -38,42 +44,45 @@ inContext :: Text -> Logger -> Logger
 inContext context logger =
   logger {contexts = context : logger.contexts}
 
-writeGenerally :: Logger -> Text -> Int -> Text -> IO ()
-writeGenerally logger tag verbosity msg = do
+-- * Effects
+
+runFx :: Logger -> Fx a -> IO a
+runFx logger fx = runReaderT fx logger
+
+type Fx = ReaderT Logger IO
+
+writeGenerally :: Text -> Int -> Text -> Fx ()
+writeGenerally tag verbosity msg = ReaderT $ \logger -> do
   maxVerbosity <- takeMVar logger.maxVerbosityVar
   if verbosity <= maxVerbosity
     then do
       time <- getCurrentTime
       finally
-        (logger.write (compiledMessage time))
+        (logger.write (compiledMessage logger.contexts time))
         (putMVar logger.maxVerbosityVar maxVerbosity)
     else putMVar logger.maxVerbosityVar maxVerbosity
   where
-    compiledMessage time =
-      if List.null logger.contexts
+    compiledMessage contexts time =
+      if List.null contexts
         then "[" <> tag <> "] " <> fromList (iso8601Show time) <> ": " <> msg
-        else "[" <> tag <> "] " <> fromList (iso8601Show time) <> " " <> Text.intercalate "/" (List.reverse logger.contexts) <> ": " <> msg
+        else "[" <> tag <> "] " <> fromList (iso8601Show time) <> " " <> Text.intercalate "/" (List.reverse contexts) <> ": " <> msg
 
-writeDebug :: Logger -> Text -> IO ()
-writeDebug logger =
-  writeGenerally logger "DEBUG" 4
+writeDebug :: Text -> Fx ()
+writeDebug = writeGenerally "DEBUG" 4
 
-writeInfo :: Logger -> Text -> IO ()
-writeInfo logger =
-  writeGenerally logger "INFO" 3
+writeInfo :: Text -> Fx ()
+writeInfo = writeGenerally "INFO" 3
 
-writeWarn :: Logger -> Text -> IO ()
-writeWarn logger =
-  writeGenerally logger "WARN" 2
+writeWarn :: Text -> Fx ()
+writeWarn = writeGenerally "WARN" 2
 
-writeError :: Logger -> Text -> IO ()
-writeError logger =
-  writeGenerally logger "ERROR" 1
+writeError :: Text -> Fx ()
+writeError = writeGenerally "ERROR" 1
 
-setVerbosity :: Logger -> Int -> IO ()
-setVerbosity logger level =
-  swapMVar logger.maxVerbosityVar level $> ()
+setVerbosity :: Int -> Fx ()
+setVerbosity level =
+  ReaderT $ \logger -> swapMVar logger.maxVerbosityVar level $> ()
 
-getVerbosity :: Logger -> IO Int
-getVerbosity logger =
-  readMVar logger.maxVerbosityVar
+getVerbosity :: Fx Int
+getVerbosity =
+  ReaderT $ \logger -> readMVar logger.maxVerbosityVar

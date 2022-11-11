@@ -98,14 +98,14 @@ adaptDbHandler handler = do
       throwError $ DbFxErr $ IncompatibilityDbErr details
     Right res -> return res
 
-adaptLoggerHandler :: (Logger.Logger -> IO a) -> Fx a
-adaptLoggerHandler handler = do
+adaptLoggerFx :: Logger.Fx a -> Fx a
+adaptLoggerFx fx = do
   env <- ask
-  liftIO $ handler env.logger
+  liftIO $ Logger.runFx env.logger fx
 
-adaptLoggerWritingHandler :: (Logger.Logger -> Text -> IO a) -> Text -> Fx a
-adaptLoggerWritingHandler handler msg =
-  adaptLoggerHandler $ \logger -> handler logger msg
+adaptWritingLoggerFx :: (Text -> Logger.Fx a) -> Text -> Fx a
+adaptWritingLoggerFx fx msg =
+  adaptLoggerFx (fx msg)
 
 inLoggingContext :: Text -> Fx a -> Fx a
 inLoggingContext context =
@@ -115,16 +115,16 @@ inLoggingContext context =
       }
 
 logDebug :: Text -> Fx ()
-logDebug = adaptLoggerWritingHandler Logger.writeDebug
+logDebug = adaptWritingLoggerFx Logger.writeDebug
 
 logInfo :: Text -> Fx ()
-logInfo = adaptLoggerWritingHandler Logger.writeInfo
+logInfo = adaptWritingLoggerFx Logger.writeInfo
 
 logWarn :: Text -> Fx ()
-logWarn = adaptLoggerWritingHandler Logger.writeWarn
+logWarn = adaptWritingLoggerFx Logger.writeWarn
 
 logError :: Text -> Fx ()
-logError = adaptLoggerWritingHandler Logger.writeError
+logError = adaptWritingLoggerFx Logger.writeError
 
 now :: Fx UTCTime
 now = do
@@ -164,13 +164,13 @@ getByTag request = inLoggingContext "get-by-tag" $ do
 toggleLog :: Fx Bool
 toggleLog = inLoggingContext "toggle-log" $ do
   logInfo $ "Processing request"
-  priorVerbosity <- adaptLoggerHandler Logger.getVerbosity
+  priorVerbosity <- adaptLoggerFx Logger.getVerbosity
   let wasVerbose = priorVerbosity > 0
   if wasVerbose
     then do
       logWarn $ "Disabling verbosity from the following level: " <> showAsText priorVerbosity
-      adaptLoggerHandler $ \logger -> Logger.setVerbosity logger 0
+      adaptLoggerFx $ Logger.setVerbosity 0
     else do
-      adaptLoggerHandler $ \logger -> Logger.setVerbosity logger 4
+      adaptLoggerFx $ Logger.setVerbosity 4
       logInfo $ "Verbosity raised to level " <> showAsText 4
   return wasVerbose
