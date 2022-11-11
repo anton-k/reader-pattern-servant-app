@@ -7,7 +7,7 @@ import ReaderProtoService qualified as Service
 main :: IO ()
 main = do
   db <- mockingServiceDb <$> MockDb.start
-  Service.startLoggingServer 7070 stderr 4 db timer
+  Service.startServer 7070 stderr 4 db timer
 
 mockingServiceDb :: MockDb.MockDb -> Service.Db
 mockingServiceDb db =

@@ -8,7 +8,7 @@ module ReaderProtoService.Service
     renderFxErrForPublicAsPlainText,
 
     -- * Management
-    startEnv,
+    start,
 
     -- ** Injections
     Db (..),
@@ -59,8 +59,8 @@ renderFxErrForPublicAsPlainText = \case
 
 -- * Management
 
-startEnv :: Handle -> Int -> Db -> Timer -> IO Env
-startEnv loggerHandle verbosity db timer =
+start :: Handle -> Int -> Db -> Timer -> IO Env
+start loggerHandle verbosity db timer =
   Env db timer <$> Logger.start loggerHandle verbosity
 
 -- ** Injections
