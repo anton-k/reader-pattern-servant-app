@@ -1,11 +1,13 @@
-# Haskell Reader pattern and servant example app
+# Summary
 
-Show case for a small application written with servant and [Reader-pattern](https://www.fpcomplete.com/blog/2017/06/readert-design-pattern/).
-It is example on how to make Dependency Injection in Haskell with Reader-pattern.
+This is a project showcasing the application of the [Reader pattern](https://www.fpcomplete.com/blog/2017/06/readert-design-pattern/)
+in an implementation of a web-service.
+Heavily focuses on codebase decoupling and provides for injection of mocking functionality in various layers of the app.
 
-Application allows to save messages with tags. 
-User can create a new message and then user can query it by id
-or by tag.
+## Functionality
+
+The application allows to save messages with tags. 
+The user can create a new message and then query it by id or by tag.
 
 API methods:
 
@@ -26,9 +28,4 @@ POST: api/v1/toggle-logs
   toggles the logs (active or silent)
 ```
 
-Applications shows how to  create interfaces for mocks and real instances.
-Also we show how to use interfaces that depen on run-time data 
-and how we can split the top-level interface to smaller ones didicated to concrete methods.
-
-See makefile for available actions.
-
+See [Makefile](Makefile) for available actions.
