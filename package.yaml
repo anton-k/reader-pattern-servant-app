@@ -56,6 +56,8 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -O2
+- -threaded
 
 library:
   source-dirs: src
@@ -65,6 +67,7 @@ executables:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
+    - -O2
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
