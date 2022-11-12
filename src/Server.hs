@@ -5,8 +5,8 @@ module Server
   , module X
   ) where
 
-import Data.ByteString.Lazy   qualified as BL
-import Data.Text.Encoding     qualified as Text
+import Control.Exception (try)
+import Control.Monad.Except (ExceptT(..))
 import DI.Log
 import DI.Time
 import DI.Setup
@@ -17,7 +17,7 @@ import Server.Save       qualified as Save
 import Server.ToggleLog  qualified as ToggleLog
 
 import Api as X
-import Types (App, runApp, liftIO)
+import App (App, runApp)
 
 -- | Service environment nterfaces
 data Env = Env
@@ -68,11 +68,7 @@ server env =
         }
 
 onRequest :: env -> App env resp -> Servant.Handler resp
-onRequest e handler = do
-  eResp <- liftIO (runApp handler e)
-  either toServantError pure eResp
-  where
-    toServantError err = throwError $ err400 { errBody = BL.fromStrict $ Text.encodeUtf8 err }
+onRequest e handler = Handler $ ExceptT $ try $ runApp handler e
 
 onRequest1 :: env -> (req -> App env resp) -> req -> Servant.Handler resp
 onRequest1 env handle a = onRequest env (handle a)
