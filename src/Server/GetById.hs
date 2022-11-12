@@ -13,7 +13,7 @@ import Types
 
 data Env = Env
   { db  :: Db
-  , log :: LogVar
+  , log :: Log
   }
 
 data Db = Db

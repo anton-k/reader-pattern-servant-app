@@ -9,6 +9,7 @@ import Data.ByteString.Lazy   qualified as BL
 import Data.Text.Encoding     qualified as Text
 import DI.Log
 import DI.Time
+import DI.Setup
 import Servant
 import Server.GetById    qualified as GetById
 import Server.GetByTag   qualified as GetByTag
@@ -20,9 +21,10 @@ import Types (App, runApp, liftIO)
 
 -- | Service environement
 data Env = Env
-  { log  :: LogVar
-  , db   :: Db
-  , time :: Time
+  { log   :: Log
+  , db    :: Db
+  , time  :: Time
+  , setup :: Setup
   }
 
 -- | All DB interfaces by method
@@ -43,27 +45,26 @@ server env =
       Save.Env
         { db = env.db.save
         , time = env.time
-        , log = addContext "api.save" env.log
+        , log = addLogContext "api.save" env.log
         }
 
     getByIdEnv =
       GetById.Env
         { db = env.db.getById
-        , log = addContext "api.get-message" env.log
+        , log = addLogContext "api.get-message" env.log
         }
 
     getByTagEnv =
       GetByTag.Env
         { db = env.db.getByTag
-        , log = addContext "api.get-tag" env.log
+        , log = addLogContext "api.get-tag" env.log
         }
 
     toggleLogEnv =
       ToggleLog.Env
-        { log = addContext "api.toggle-log" env.log
+        { log = addLogContext "api.toggle-log" env.log
+        , setup = env.setup
         }
-
-    addContext namespace = mapLog (addLogContext namespace)
 
 onRequest :: env -> App env resp -> Servant.Handler resp
 onRequest e handler = do

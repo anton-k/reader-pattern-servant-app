@@ -28,6 +28,7 @@ library
       Api
       App
       DI.Log
+      DI.Setup
       DI.Time
       Server
       Server.GetById
@@ -73,7 +74,9 @@ executable reader-proto-exe
       App.DI.Db
       App.DI.Db.MockDb
       App.DI.Log
+      App.DI.Setup
       App.DI.Time
+      App.State
       Paths_reader_proto
   hs-source-dirs:
       app

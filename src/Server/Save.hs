@@ -16,7 +16,7 @@ data Db = Db
   }
 
 data Env = Env
-  { log   :: LogVar
+  { log   :: Log
   , db    :: Db
   , time  :: Time
   }
