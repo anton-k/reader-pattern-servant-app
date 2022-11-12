@@ -244,7 +244,7 @@ info message = do
 With it we can encode our dependencies in contexts and make cool reusable functions
 that work on subsets of our interfaces:
 
-```
+```haskell
 setWithLog :: (ToJSON a, HasLog env, HasDb a) => req -> App env ()
 setWithLog req = do
   Log{..} <- asks getLog
@@ -799,7 +799,7 @@ does not really need it.  But as coupling was codified we will forget that we ne
 keep them separate and we will bring stronger bound that will prevent changes from
 being local and flexible.
 
-I think that this is where software engeneering stops to look like a science and
+I think that this is where software engeneering stops to look like a Science and
 starts to look like like an Art. There is no right answer to this.
 We should balance it as we grow and our app grows. 
 Some interfaces can be reused and we might want to solidify them to not to copy over and over.
@@ -825,7 +825,7 @@ Let's turn back to our stetful logger example. With one approach we can
 keep interfaces look stateless but pass mutable state on initialisation stage.
 and our solution lookes like this on `Env`-level:
 
-```
+```haskell
 data Env = Env
   { isVerbose :: TVar Bool
   , log       :: Log
@@ -842,6 +842,9 @@ But whaat if it was also an interface?
 It can be done this way:
 
 ```haskell
+---------------------------------------
+-- in the library code
+
 data Env = Env
   { config  :: Config
   , log     :: Log
@@ -853,9 +856,12 @@ data Config = Config
   , useBar      :: BarConfig -> IO ()
   }
 
+---------------------------------------
+-- in the executable code
+
 initEnv :: IO Env
 initEnv = do
-  isVerbose <- newTVar True
+  isVerbose <- newTVarIO True
   config <- initConfig isVerbose
   log    <- initLog isVerbose
   pure $ env config log
