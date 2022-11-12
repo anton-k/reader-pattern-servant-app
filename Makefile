@@ -25,7 +25,7 @@ get-id:
 get-tag:
 	curl http://localhost:7070/api/v1/list/tag/$(tag) -v
 
-toggle-log:
+toggle-logs:
 	curl http://localhost:7070/api/v1/toggle-logs -d '{}' -v -H "Content-Type: application/json"
 
 # generate dependency tree

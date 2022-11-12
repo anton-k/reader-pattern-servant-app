@@ -5,10 +5,12 @@ module Server.ToggleLog
   ) where
 
 import DI.Log
+import DI.Setup
 import Types
 
 data Env = Env
-  { log :: LogVar
+  { log   :: Log
+  , setup :: Setup
   }
 
 -----------------------------------------
@@ -17,8 +19,8 @@ data Env = Env
 handle :: App Env ()
 handle = do
   Log{..} <- askLog
+  Setup{..} <- askSetup
 
-  env <- ask
   liftIO $ do
     logInfo "toggle log call"
-    toggleLog env.log
+    toggleLogs
