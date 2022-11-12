@@ -7,8 +7,9 @@ module DI.Setup
 
 import Types
 
+-- | Setup app configs
 data Setup = Setup
-  { toggleLogs :: IO ()
+  { toggleLogs :: IO ()  -- ^ toggle log verbosity
   }
 
 type HasSetup env = HasField "setup" env Setup

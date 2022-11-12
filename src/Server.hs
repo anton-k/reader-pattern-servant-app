@@ -19,12 +19,12 @@ import Server.ToggleLog  qualified as ToggleLog
 import Api as X
 import Types (App, runApp, liftIO)
 
--- | Service environement
+-- | Service environment nterfaces
 data Env = Env
-  { log   :: Log
-  , db    :: Db
-  , time  :: Time
-  , setup :: Setup
+  { log   :: Log   -- ^ logger
+  , db    :: Db    -- ^ DB
+  , time  :: Time  -- ^ current time
+  , setup :: Setup -- ^ setup configs
   }
 
 -- | All DB interfaces by method
@@ -34,6 +34,7 @@ data Db = Db
   , getByTag :: GetByTag.Db
   }
 
+-- | Servant server for the app
 server :: Env -> Server Api
 server env =
        onRequest1 saveEnv Save.handle

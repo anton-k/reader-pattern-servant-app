@@ -9,6 +9,7 @@ module DI.Time
 
 import Types
 
+-- | Get current time
 data Time = Time
   { now :: IO UTCTime
   }
