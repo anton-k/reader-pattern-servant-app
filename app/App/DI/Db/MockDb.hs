@@ -1,24 +1,16 @@
--- | Init db service (using mock one for prototype)
-module DI.Db
-  ( initDb
+-- | Mock in memory DB
+module App.DI.Db.MockDb
+  ( MockDb
+  , newMockDb
+  , insertDb
+  , lookupDb
+  , lookupByTag
   ) where
 
 import Control.Concurrent.STM
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Server.Env
 import Types
-
-initDb :: Url -> IO IDb
-initDb _url = do
-  db <- newMockDb
-  pure $ IDb
-    { saveMessage = insertDb db
-    , getMessage = lookupDb db
-    , getByTag = lookupByTag db
-    }
-
--- Mock DB
 
 newtype MockDb = MockDb (TVar (Map MessageId Message))
 

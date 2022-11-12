@@ -1,27 +1,32 @@
+-- | Get message by id handler
 module Server.GetById
-  ( GetByIdEnv(..)
-  , handleGetById
+  ( Env(..)
+  , Db(..)
+  , handle
   ) where
 
-import Server.Env
-import Server.Class
+import DI.Log
 import Types
 
 -----------------------------------------
 -- Env
 
-data GetByIdEnv = GetByIdEnv
-  { db  :: IDb
-  , log :: ILogVar
+data Env = Env
+  { db  :: Db
+  , log :: LogVar
+  }
+
+data Db = Db
+  { getMessage :: MessageId -> IO (Maybe Message)
   }
 
 -----------------------------------------
 -- Handler
 
-handleGetById :: MessageId -> App GetByIdEnv Message
-handleGetById messageId = do
-  IDb{..}  <- askDb
-  ILog{..} <- askLog
+handle :: MessageId -> App Env Message
+handle messageId = do
+  Db{..}  <- asks (.db)
+  Log{..} <- askLog
 
   mMsg <- liftIO $ do
     logInfo $ "get by id call: " <> display messageId

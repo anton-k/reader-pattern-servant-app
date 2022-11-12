@@ -1,35 +1,21 @@
+-- | Domain types
 module Types
   ( Url
-  , App
-  , runApp
   , MessageId(..)
   , Tag(..)
   , Message(..)
+  , module X
   ) where
 
-import Control.Monad.Reader
-import Control.Monad.Except
-import Data.Time (UTCTime)
-import Data.Text (Text)
+import Data.Time as X (UTCTime)
+import Data.Text as X (Text)
+import GHC.Records as X (HasField(..))
 import Deriving.Aeson
 import Deriving.Aeson.Stock
 import Servant.API (FromHttpApiData)
+import App as X
 
 type Url = String
-type ApiError = Text
-
-newtype App env a = App (ReaderT env (ExceptT ApiError IO) a)
-  deriving newtype
-    ( Functor
-    , Applicative
-    , Monad
-    , MonadReader env
-    , MonadError ApiError
-    , MonadIO
-    )
-
-runApp :: App env a -> env -> IO (Either ApiError a)
-runApp (App a) env = runExceptT $ runReaderT a env
 
 newtype MessageId = MessageId { unMessageId :: Int }
   deriving newtype (ToJSON, FromJSON, Show, Eq, Ord, FromHttpApiData)

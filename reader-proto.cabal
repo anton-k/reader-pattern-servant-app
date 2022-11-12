@@ -26,9 +26,10 @@ source-repository head
 library
   exposed-modules:
       Api
+      App
+      DI.Log
+      DI.Time
       Server
-      Server.Class
-      Server.Env
       Server.GetById
       Server.GetByTag
       Server.Save
@@ -51,7 +52,7 @@ library
       OverloadedRecordDot
       RecordWildCards
       TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Werror -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -O2 -threaded
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -69,9 +70,10 @@ library
 executable reader-proto-exe
   main-is: Main.hs
   other-modules:
-      DI.Db
-      DI.Log
-      DI.Time
+      App.DI.Db
+      App.DI.Db.MockDb
+      App.DI.Log
+      App.DI.Time
       Paths_reader_proto
   hs-source-dirs:
       app
@@ -88,7 +90,7 @@ executable reader-proto-exe
       OverloadedRecordDot
       RecordWildCards
       TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Werror -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -O2 -threaded -O2 -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -125,7 +127,7 @@ test-suite reader-proto-test
       OverloadedRecordDot
       RecordWildCards
       TypeOperators
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Werror -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -O2 -threaded -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base >=4.7 && <5

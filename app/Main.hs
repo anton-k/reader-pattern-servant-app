@@ -6,9 +6,10 @@ import Network.Wai.Handler.Warp (run)
 
 import Server
 import Types
-import DI.Db
 import DI.Log
-import DI.Time
+import App.DI.Db
+import App.DI.Log
+import App.DI.Time
 
 data Config = Config
   { db   :: Url
@@ -29,6 +30,6 @@ runServer config = do
         <*> initDb config.db
         <*> initTime config.time
 
-  ILog{..} <- readLogVar env.log
+  Log{..} <- readLogVar env.log
   logInfo $ "Start server on http://localhost:" <> display config.port
   run config.port $ serve (Proxy :: Proxy Api) (server env)

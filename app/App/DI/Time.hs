@@ -1,14 +1,14 @@
 -- | init time service
-module DI.Time
+module App.DI.Time
   ( initTime
   ) where
 
 import Data.Time
-import Server.Env
+import DI.Time
 import Types
 
-initTime :: Url -> IO ITime
+initTime :: Url -> IO Time
 initTime _url = do
-  pure $ ITime
+  pure $ Time
     { now = getCurrentTime
     }

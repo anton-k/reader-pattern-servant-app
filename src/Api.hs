@@ -1,10 +1,12 @@
+-- | API for the service.
+-- For simplicity it is in single module, but will be split on parts
+-- by methods in real project.
 module Api
   ( Api
   , SaveRequest(..)
   , SaveResponse(..)
   ) where
 
-import Data.Text (Text)
 import Deriving.Aeson
 import Deriving.Aeson.Stock
 import Servant.API

@@ -1,21 +1,21 @@
 -- | Init logs
-module DI.Log
+module App.DI.Log
   ( initLogVar
   ) where
 
 import Control.Concurrent.STM
 import Data.Text.IO qualified as Text
-import Server.Env
+import DI.Log
 
-initLogVar :: IO ILogVar
-initLogVar = ILogVar <$> initVerbosity <*> initLog
+initLogVar :: IO LogVar
+initLogVar = LogVar <$> initVerbosity <*> initLog
 
 initVerbosity :: IO (TVar Bool)
 initVerbosity = newTVarIO True
 
-initLog :: IO ILog
+initLog :: IO Log
 initLog = do
-  pure $ ILog
+  pure $ Log
     { logInfo = logConsole "INFO"
     , logError = logConsole "ERROR"
     , logDebug = logConsole "DEBUG"
