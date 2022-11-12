@@ -31,7 +31,7 @@ Also we show how to use interfaces that depen on run-time data
 and how we can split the top-level interface to smaller ones didicated to concrete methods.
 
 
-### Install guide
+### Application user guide
 
 See makefile for available actions for installation and testing the service.
 The app can be biuld with stack. The GHC extension list is kept lightweight
@@ -61,6 +61,9 @@ We can
   make tag=random get-tag
   make toggle-logs
   ```
+
+The rest of the article is tutorial explaining the application of Reader pattern
+in Haskell to build web-apps.
 
 ## Introduction
 
