@@ -548,6 +548,113 @@ It hides this connection details behind interface. and leaves us with
 nice interface. But for this approach we should pass verbosity to
 all logging functions.
 
+### Taking interface approach to extreme
+
+I've said that `Env` is for keeping interfaces and mutable state of the
+service. The cool thing that we can make interfaces depend on mutable 
+state and they might look like they are just pure interfaces (up to the point of `IO`-inside them).
+
+It's interesting can we hide all mutation and use only interfaces?
+Actually we can. This is an open question should we do it or not
+but in this case our app looks like a composition of interfaces every one of which 
+can be mocked or used with laternative implementation.
+
+Let's turn back to our stetful logger example. With one approach we can
+keep interfaces look stateless but pass mutable state on initialisation stage.
+and our solution lookes like this on `Env`-level:
+
+```haskell
+data Env = Env
+  { isVerbose :: TVar Bool
+  , log       :: Log
+  }
+
+initLog :: TVar Bool -> IO Log
+initLog =
+```
+
+The function `initLog` hides dependency on mutable interface in the logger.
+and we have to face the reality of `isVerbose` mutable `TVar`-state.
+But what if it was also an interface? 
+
+It can be done this way:
+
+```haskell
+---------------------------------------
+-- in the library code
+
+data Env = Env
+  { setup :: Setup
+  , log   :: Log
+  }
+
+-- | Interface for tweaking configs
+data Setup = Setup
+  { toggleLogs  :: IO ()
+  , swithcToFoo :: FooConfig -> IO () -- ^ other config tweaks of the app
+  , useBar      :: BarConfig -> IO ()
+  }
+
+---------------------------------------
+-- in the executable code
+
+initEnv :: IO Env
+initEnv = do
+  verboseVar <- newVerboseVar
+  setup <- initSetup verboseVar
+  log <- initLog verboseVar
+  pure $ Env setup log
+```
+
+Note that `Setup` is not a data structure it's an interface
+to trigger changes in the configs of the system.
+And we share the link between logger and config only inside the executable `app`.
+On the level of the library they look decoupled.
+
+This way we are not forced to chose TVar between some other method of
+sharing mutable state. It's all hided from the library.
+By the `Env` we only see the list of available actions 
+that can be performed on the app in terms of interfaces.
+
+### Hiding mutable variables with interfaces
+
+For the previous example instead of passing `TVar Bool` directly
+to initialization functions we can create a wrapper that hides
+away internal details of that mutalbe variable. We do that in the module `app/App/State.hs`:
+
+```haskell
+-- | Application mutable state
+module App.State
+  ( VerboseVar
+  , newVerboseVar
+  , isVerbose
+  , toggleVerbose
+  ) where
+
+import Control.Concurrent.STM
+
+newtype VerboseVar = VerboseVar (TVar Bool)
+
+newVerboseVar :: IO VerboseVar
+newVerboseVar = VerboseVar <$> newTVarIO True
+
+isVerbose :: VerboseVar -> IO Bool
+isVerbose (VerboseVar var) = readTVarIO var
+
+toggleVerbose :: VerboseVar -> IO ()
+toggleVerbose (VerboseVar var) = atomically $ modifyTVar' var not
+```
+
+We define a newtype wrapper for the mutable variable that controls
+verbosity of the logs and provide several functions with which we can read that variable and set it up.
+
+And signatures for our initialization functions become more self-explanatory:
+
+```haskell
+initLog   :: VerboseVar -> IO Log
+initSetup :: VerboseVar -> Setup
+```
+
 ### Flexibility of record-style interfaces
 
 I'd like to metion how easy it's to adapt our interfaces. As they are
@@ -558,8 +665,8 @@ to specific route. for example we need to prefix the logs with the name of the r
 We can adapt the whole logging interface by plugging the function:
 
 ```haskell
-middleLog :: (Text -> Text) -> Log -> Log
-middleLog go logger = Log
+mapLog :: (Text -> Text) -> Log -> Log
+mapLog go logger = Log
   { logInfo = logger.logInfo . go
   , logDebug = logger.logDebug . go
   , logError = logger.logError . go
@@ -567,7 +674,7 @@ middleLog go logger = Log
 
 addLogContext :: Text -> Log -> Log
 addLogContext contextMesage =
-  middleLog (mappend (contextMesage <> ": "))
+  mapLog (mappend (contextMesage <> ": "))
 ```
 
 In this example we use sort of logging middleware that inserts
@@ -625,7 +732,7 @@ import Types
 
 data Env = Env
   { db  :: Db
-  , log :: LogVar
+  , log :: Log
   }
 
 data Db = Db
@@ -650,7 +757,7 @@ Let's take it apart. It has it's own `Env`:
 ```haskell
 data Env = Env
   { db  :: Db
-  , log :: LogVar
+  , log :: Log
   }
 ```
 
@@ -686,9 +793,10 @@ to the methods on the stage of server definition (see module `Server`):
 ```haskell
 -- | Service environement
 data Env = Env
-  { log  :: LogVar
-  , db   :: Db
-  , time :: Time
+  { log   :: Log
+  , db    :: Db
+  , time  :: Time
+  , setup :: Setup
   }
 
 -- | All DB interfaces by method
@@ -721,7 +829,8 @@ and modification of `DB` or `Time` interface will not affect it:
 module Server.ToggleLog where
 
 data Env = Env
-  { log :: LogVar
+  { log   :: Log
+  , setup :: Setup
   }
 
 handle :: App Env ()
@@ -791,7 +900,7 @@ import DI.Foo
 
 data Env = Env
   { db  :: Db
-  , log :: LogVar
+  , log :: Log
   , foo :: Foo    -- ^ new interface here
   }
 ```
@@ -813,10 +922,11 @@ also we need to add `Foor` to `Env` and pass it to route handler in the server d
 ```haskell
 -- | Main Service environment
 data Env = Env
-  { log  :: LogVar
-  , db   :: Db
-  , time :: Time
-  , foo  :: Foo -- new line here
+  { log   :: Log
+  , db    :: Db
+  , time  :: Time  
+  , setup :: Setup
+  , foo   :: Foo -- new line here
   }  
 ```
 
@@ -833,7 +943,7 @@ module Server.ListTag where
 
 data Env = Env
   { db  :: Db
-  , log :: LogVar
+  , log :: Log
   , foo :: Foo -- ^ new interface here
   }
 
@@ -847,10 +957,11 @@ Also we add it to the `Env` in the same vein as we added local `Db`-interfaces:
 ```haskell
 -- | Service environement
 data Env = Env
-  { log  :: LogVar
-  , db   :: Db
-  , time :: Time
-  , foo  :: Foo
+  { log   :: Log
+  , db    :: Db
+  , time  :: Time
+  , setup :: Setup
+  , foo   :: Foo
   }
 
 data Foo = Foo
@@ -916,73 +1027,6 @@ So it becomes the matter of taste and intuition. But starting small with local
 ones I think it pays off and great decision for web-application building.
 As it's much more flexible approach.
 
-#### Taking interface approach to extreme
-
-I've said that `Env` is for keeping interfaces and mutable state of the
-service. The cool thing that we can make interfaces depend on mutable 
-state and they might look like they are just pure interfaces (up to the point of `IO`-inside them).
-
-It's interesting can we hide all mutation and use only interfaces?
-Actually we can. This is an open question should we do it or not
-but in this case our app looks like a composition of interfaces every one of which 
-can be mocked or used with laternative implementation.
-
-Let's turn back to our stetful logger example. With one approach we can
-keep interfaces look stateless but pass mutable state on initialisation stage.
-and our solution lookes like this on `Env`-level:
-
-```haskell
-data Env = Env
-  { isVerbose :: TVar Bool
-  , log       :: Log
-  }
-
-initLog :: TVar Bool -> IO Log
-initLog =
-```
-
-The function `initLog` hides dependency on mutable interface in the logger.
-and we have to face the reality of `isVerbose` mutable `TVar`-state.
-But what if it was also an interface? 
-
-It can be done this way:
-
-```haskell
----------------------------------------
--- in the library code
-
-data Env = Env
-  { setup :: Setup
-  , log   :: Log
-  }
-
--- | Interface for tweaking configs
-data Setup = Setup
-  { toggleLogs  :: IO ()
-  , swithcToFoo :: FooConfig -> IO () -- ^ other config tweaks of the app
-  , useBar      :: BarConfig -> IO ()
-  }
-
----------------------------------------
--- in the executable code
-
-initEnv :: IO Env
-initEnv = do
-  verboseVar <- newVerboseVar
-  setup <- initSetup verboseVar
-  log <- initLog verboseVar
-  pure $ Env setup log
-```
-
-Note that `Setup` is not a data structure it's an interface
-to trigger changes in the configs of the system.
-And we share the link between logger and config only inside the executable `app`.
-On the level of the library they look decoupled.
-
-This way we are not forced to chose TVar between some other method of
-sharing mutable state. It's all hided from the library.
-By the `Env` we only see the list of available actions 
-that can be performed on the app in terms of interfaces.
 
 ### Scaling up
 
