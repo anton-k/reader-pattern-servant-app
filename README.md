@@ -71,8 +71,10 @@ of user or app driven interfaces. We build small interfaces that are dedicated
 to concrete part of the app and use it localy. And on level of the executable 
 we use concrete implemntation. 
 
-This approach is well desribed in the book Domain Modeling Made Functional by
-Scott Walschin (it uses F#). 
+This approach is inspired by the book [Domain Modeling Made Functional](https://pragprog.com/titles/swdddf/domain-modeling-made-functional/) by
+Scott Walschin (it uses F#). In this book it's well described how to build small 
+and focused interfaces. I'd like to thank the [Scott Walschin](https://fsharpforfunandprofit.com/) 
+for providing this simple yet powerful technique to mitigate complexity. 
 In this tutorial I'd like to adapt it to Haskell and building web apps with Reader pattern.
 
 So let's dive in.
@@ -632,7 +634,8 @@ we use only that much from the external dependency as we need to implement
 by the user action. 
 
 This can save us alot of trouble by trying to define beatiful and shiny
-DB-interface that will fit every needs. This can lead to disaster of bloated interfaces
+DB-interface that will fit every needs. With single DB-interface to rule them all
+it can lead to disaster of bloated interfaces
 that are hard to modify and reason about. And they usually trigger recompilation of
 the whole project.
 
@@ -660,7 +663,7 @@ data Db = Db
 
 And with this approach we re-compile only two moduels (this one and server that puts it all together)
 and we have no errors on the level of the library. But we will have missing field in the DI-implementation.
-Which is easy to fi with mock or we can compile on the library level with 
+Which is easy to define with mock or we can compile on the library level with 
 
 ```haskell
 stack build reader-proto:lib
@@ -670,7 +673,7 @@ for a while and keep implementing our feature in terms of interfaces.
 
 ##### Add new external depndency
 
-Ok let's imagine that `validTag` is provided not by `DB` but by some http-client.
+Ok let's imagine that `validTag` is provided not by `DB` but by some http-client `Foo`.
 We have two options here to consider:
 
 * is it well defined and settled interface like `Log`?
@@ -682,12 +685,12 @@ it to the handler:
 ```haskell
 module Server.GetByTag where
 
-import DI.FooValidator
+import DI.Foo
 
 data Env = Env
   { db  :: Db
   , log :: LogVar
-  , foo :: FooValidator -- ^ new interface here
+  , foo :: Foo    -- ^ new interface here
   }
 ```
 
@@ -703,7 +706,7 @@ handle tag = do
   -- use validTag from Foo 
 ```
 
-also we need to add `FooValidator` to `Env` and pass it to route handler in the server definion:
+also we need to add `Foor` to `Env` and pass it to route handler in the server definion:
 
 ```haskell
 -- | Main Service environment
@@ -711,16 +714,16 @@ data Env = Env
   { log  :: LogVar
   , db   :: Db
   , time :: Time
-  , foo  :: FooValidator -- new line here
+  , foo  :: Foo -- new line here
   }  
 ```
 
 and also we pass it to the local env for `GetByTag` to make it compile.
 Again we get no errors on library level and we recompile only two modules if 
-`FooValidator` is already defined in `DI`.
+`Foo` is already defined in `DI`.
 
 In the second option if we decide that this is hard to settle down and vague interface
-like `Db` one. We create local version of the `FooValidator` and keep it inside 
+like `Db` one. We create local version of the `Foo` and keep it inside 
 the handler module:
 
 ```haskell
@@ -729,17 +732,17 @@ module Server.GetByTag where
 data Env = Env
   { db  :: Db
   , log :: LogVar
-  , foo :: FooValidator -- ^ new interface here
+  , foo :: Foo -- ^ new interface here
   }
 
-data FooValidator = Foo
+data Foo = Foo
   { validTag  :: Tag -> IO Bool 
   }
 ```
 
 Also we add it to the `Env` in the same vein as we added local `Db`-interfaces:
 
-```
+```haskell
 -- | Service environement
 data Env = Env
   { log  :: LogVar
@@ -757,14 +760,15 @@ And that's it. We also recompile only two modules and get no errors on the libra
 
 ##### Coding through the uncertainty
 
-In many web-applications domains are very flexible and features are incoherent at best
+In web-applications domains are very flexible and features are incoherent at best
 and come to life and death as fast as the market wants them.
 And nothing can be done about that. Our domain is ocean wave and it's hard to build
 castles on top of it. 
 
 But we are Haskellers. We are mathy people. We like beatiful solid Math interfaces.
+
 Forget it. This approach can lead to disaster in the web-application domain.
-The interfaces starting good and cool quickly become incoherent and bloated.
+The interfaces starting solid and cool quickly become incoherent and bloated.
 
 So instead of building rock solid, beautiful interfaces I propose to build local
 small interfaces that are easy to introduce and throw away if they are not needed.
