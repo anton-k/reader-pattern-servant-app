@@ -30,7 +30,37 @@ Applications shows how to  create interfaces for mocks and real instances.
 Also we show how to use interfaces that depen on run-time data 
 and how we can split the top-level interface to smaller ones didicated to concrete methods.
 
-See makefile for available actions.
+
+### Install guide
+
+See makefile for available actions for installation and testing the service.
+The app can be biuld with stack. The GHC extension list is kept lightweight
+but we rely on modern compiler GHC 9.2 for nice record-dot syntax.
+
+We can 
+
+* build the app:
+
+  ```
+  make build
+  ```
+
+* run the executable:
+
+  ```
+  make run
+  ```
+
+  It will start the server on default port.
+
+* trigger API-routes over `curl`:
+
+  ```
+  make message='{"message": "waiting for the summer", "tags": ["random"] }' post-save
+  make id=0 get-id
+  make tag=random get-tag
+  make toggle-logs
+  ```
 
 ## Introduction
 
