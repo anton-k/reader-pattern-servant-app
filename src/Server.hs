@@ -18,12 +18,14 @@ import Server.ToggleLog  qualified as ToggleLog
 import Api as X
 import Types (App, runApp, liftIO)
 
+-- | Service environement
 data Env = Env
   { log  :: LogVar
   , db   :: Db
   , time :: Time
   }
 
+-- | All DB interfaces by method
 data Db = Db
   { save     :: Save.Db
   , getById  :: GetById.Db

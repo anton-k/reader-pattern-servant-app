@@ -22,7 +22,7 @@ data Db = Db
 
 handle :: Tag -> App Env [Message]
 handle tag = do
-  Db{..}   <- asks (.db)
+  Db{..}  <- asks (.db)
   Log{..} <- askLog
 
   liftIO $ do
