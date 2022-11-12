@@ -1,5 +1,5 @@
 -- | Get by tag handler
-module Server.GetByTag
+module Server.ListTag
   ( Env(..)
   , Db(..)
   , handle
@@ -14,7 +14,7 @@ data Env = Env
   }
 
 data Db = Db
-  { getByTag :: Tag -> IO [Message]
+  { listTag :: Tag -> IO [Message]
   }
 
 -----------------------------------------
@@ -26,5 +26,5 @@ handle tag = do
   Log{..} <- askLog
 
   liftIO $ do
-    logInfo $ "get by tag call: " <> display tag
-    getByTag tag
+    logInfo $ "list tag call: " <> display tag
+    listTag tag

@@ -11,8 +11,8 @@ import DI.Log
 import DI.Time
 import DI.Setup
 import Servant
-import Server.GetById    qualified as GetById
-import Server.GetByTag   qualified as GetByTag
+import Server.GetMessage qualified as GetMessage
+import Server.ListTag    qualified as ListTag
 import Server.Save       qualified as Save
 import Server.ToggleLog  qualified as ToggleLog
 
@@ -29,17 +29,17 @@ data Env = Env
 
 -- | All DB interfaces by method
 data Db = Db
-  { save     :: Save.Db
-  , getById  :: GetById.Db
-  , getByTag :: GetByTag.Db
+  { save        :: Save.Db
+  , getMessage :: GetMessage.Db
+  , listTag    :: ListTag.Db
   }
 
 -- | Servant server for the app
 server :: Env -> Server Api
 server env =
        onRequest1 saveEnv Save.handle
-  :<|> onRequest1 getByIdEnv GetById.handle
-  :<|> onRequest1 getByTagEnv GetByTag.handle
+  :<|> onRequest1 getMessageEnv GetMessage.handle
+  :<|> onRequest1 listTagEnv ListTag.handle
   :<|> onRequest  toggleLogEnv ToggleLog.handle
   where
     saveEnv =
@@ -49,16 +49,16 @@ server env =
         , log = addLogContext "api.save" env.log
         }
 
-    getByIdEnv =
-      GetById.Env
-        { db = env.db.getById
+    getMessageEnv =
+      GetMessage.Env
+        { db = env.db.getMessage
         , log = addLogContext "api.get-message" env.log
         }
 
-    getByTagEnv =
-      GetByTag.Env
-        { db = env.db.getByTag
-        , log = addLogContext "api.get-tag" env.log
+    listTagEnv =
+      ListTag.Env
+        { db = env.db.listTag
+        , log = addLogContext "api.list-tag" env.log
         }
 
     toggleLogEnv =

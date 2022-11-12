@@ -7,15 +7,15 @@ import App.DI.Db.MockDb
 
 import Server (Db(..))
 import Server.Save qualified as Save
-import Server.GetById qualified as GetById
-import Server.GetByTag qualified as GetByTag
+import Server.GetMessage qualified as GetMessage
+import Server.ListTag qualified as ListTag
 import Types
 
 initDb :: Url -> IO Db
 initDb _url = do
   db <- newMockDb
   pure $ Db
-    { save = Save.Db { saveMessage = insertDb db }
-    , getById = GetById.Db { getMessage = lookupDb db }
-    , getByTag = GetByTag.Db { getByTag = lookupByTag db }
+    { save       = Save.Db { saveMessage = insertDb db }
+    , getMessage = GetMessage.Db { getMessage = lookupDb db }
+    , listTag    = ListTag.Db { listTag = lookupByTag db }
     }

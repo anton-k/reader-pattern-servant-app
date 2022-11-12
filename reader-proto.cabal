@@ -31,8 +31,8 @@ library
       DI.Setup
       DI.Time
       Server
-      Server.GetById
-      Server.GetByTag
+      Server.GetMessage
+      Server.ListTag
       Server.Save
       Server.ToggleLog
       Types

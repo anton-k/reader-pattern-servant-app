@@ -58,7 +58,7 @@ We can
   ```
   make message='{"message": "waiting for the summer", "tags": ["random"] }' post-save
   make id=0 get-id
-  make tag=random get-tag
+  make tag=random list-tag
   make toggle-logs
   ```
 
@@ -74,7 +74,7 @@ The library `src/` defines types, interfaces, server and handlers
  * `Api` - API for the app
  * `Server` - servant server and main envirnment (state) of the service
  * `DI.[Log | Time | Setup]` - interfaces for the app and common functions
- * `Server.[Save | GetById | GetByTag | ToggleLog]` - handlers of the API-routes
+ * `Server.[Save | GetMessage | ListTag | ToggleLog]` - handlers of the API-routes
 
 Executable `app/` implements interfaces initialises service state and launchaes the app.
 
@@ -187,7 +187,7 @@ data Log = Log
   }
 
 data Db = Db 
-  { getMessage :: MessageId -> IO (Maybe Message)
+  { getMessage  :: MessageId -> IO (Maybe Message)
   , saveMessage :: Message -> IO MessageId
   }
 ```
@@ -412,14 +412,14 @@ In the servant definition we use it like this:
 server :: Env -> Server Api
 server env =
        onRequest1 saveEnv Save.handle
-  :<|> onRequest1 getByIdEnv GetById.handle
-  :<|> onRequest1 getByTagEnv GetByTag.handle
+  :<|> onRequest1 getMessageEnv GetMessage.handle
+  :<|> onRequest1 listTagEnv ListTag.handle
   :<|> onRequest  toggleLogEnv ToggleLog.handle
   where
     -- local env's for methods
     saveEnv    = 
-    getByIdEnv =
-    getByTagEnv =
+    getMessageEnv =
+    listTagEnv =
     toggleLogEnv =
 ```
 
@@ -582,10 +582,10 @@ interface with it. And we can use it in the code by passing the logger to concre
         , log = addLogContext "api.save" env.log
         }
 
-    getByTagEnv =
-      GetByTag.Env
-        { db = env.db.getByTag
-        , log = addLogContext "api.get-tag" env.log
+    listTagEnv =
+      ListTag.Env
+        { db = env.db.listTag
+        , log = addLogContext "api.list-tag" env.log
         }
 ```
 Here we transform the common logger defined in top-level envirnment state
@@ -609,12 +609,12 @@ as app is strongly coupled on one type of `Env` and there wil be many interdepen
 and compilation time will be bad.
 
 Instead of this I prefer to keep `Env` dedicated to methods.
-Let's take a look at the interface of the `GetByTag` API-method.
+Let's take a look at the interface of the `ListTag` API-method.
 In the task it returns the message by `Tag`. Here is complete definition:
 
 ```haskell
 -- | Get by tag handler
-module Server.GetByTag
+module Server.ListTag
   ( Env(..)
   , Db(..)
   , handle
@@ -629,7 +629,7 @@ data Env = Env
   }
 
 data Db = Db
-  { getByTag :: Tag -> IO [Message]
+  { listTag :: Tag -> IO [Message]
   }
 
 -----------------------------------------
@@ -642,7 +642,7 @@ handle tag = do
 
   liftIO $ do
     logInfo $ "get by tag call: " <> display tag
-    getByTag tag
+    listTag tag
 ```
 
 Let's take it apart. It has it's own `Env`:
@@ -658,7 +658,7 @@ and we can see that `DB`-interface is also local to the method:
 
 ```haskell
 data Db = Db
-  { getByTag :: Tag -> IO [Message]
+  { listTag :: Tag -> IO [Message]
   }
 ```
 
@@ -693,22 +693,22 @@ data Env = Env
 
 -- | All DB interfaces by method
 data Db = Db
-  { save     :: Save.Db
-  , getById  :: GetById.Db
-  , getByTag :: GetByTag.Db
+  { save       :: Save.Db
+  , getMessage :: GetMessage.Db
+  , listTag    :: ListTag.Db
   }
 
 server :: Env -> Server Api
 server env =
        onRequest1 saveEnv Save.handle
-  :<|> onRequest1 getByTagEnv GetById.handle
+  :<|> onRequest1 listTagEnv GetMessage.handle
   where
     ...
 
-    getByTagEnv =
-      GetByTag.Env
-        { db = env.db.getByTag
-        , log = addContext "api.get-tag" env.log
+    listTagEnv =
+      ListTag.Env
+        { db = env.db.listTag
+        , log = addContext "api.list-tag" env.log
         }
 ```
 
@@ -754,11 +754,11 @@ Let's consider two types of changes:
 ##### Add method to existing interface
 
 For example if we want to add `validTag` to our DB-interface
-for the API-route `GetByTag`. We can add it to the local DB-interface:
+for the API-route `ListTag`. We can add it to the local DB-interface:
 
 ```haskell
 data Db = Db
-  { getByTag :: Tag -> IO [Message]
+  { listTag  :: Tag -> IO [Message]
   , validTag :: Tag -> IO Bool
   }
 ```
@@ -785,7 +785,7 @@ If it's well defined then we can declare it under `DI`-umnrella and just import
 it to the handler:
 
 ```haskell
-module Server.GetByTag where
+module Server.ListTag where
 
 import DI.Foo
 
@@ -820,7 +820,7 @@ data Env = Env
   }  
 ```
 
-and also we pass it to the local env for `GetByTag` to make it compile.
+and also we pass it to the local env for `ListTag` to make it compile.
 Again we get no errors on library level and we recompile only two modules if 
 `Foo` is already defined in `DI`.
 
@@ -829,7 +829,7 @@ like `Db` one. We create local version of the `Foo` and keep it inside
 the handler module:
 
 ```haskell
-module Server.GetByTag where
+module Server.ListTag where
 
 data Env = Env
   { db  :: Db
@@ -854,7 +854,7 @@ data Env = Env
   }
 
 data Foo = Foo
-  { getByTag :: Foo
+  { listTag :: ListTag.Foo
   }
 ```
 

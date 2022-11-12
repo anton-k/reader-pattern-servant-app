@@ -21,8 +21,8 @@ get-id:
 	curl http://localhost:7070/api/v1/get/message/$(id) -v
 
 # call:
-# > make tag=info get-tag
-get-tag:
+# > make tag=info list-tag
+list-tag:
 	curl http://localhost:7070/api/v1/list/tag/$(tag) -v
 
 toggle-logs:

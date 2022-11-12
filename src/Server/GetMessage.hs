@@ -1,5 +1,5 @@
 -- | Get message by id handler
-module Server.GetById
+module Server.GetMessage
   ( Env(..)
   , Db(..)
   , handle
