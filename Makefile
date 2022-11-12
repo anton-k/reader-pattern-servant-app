@@ -23,7 +23,7 @@ get-id:
 # call:
 # > make tag=info get-tag
 get-tag:
-	curl http://localhost:7070/api/v1/get/tag/$(tag) -v
+	curl http://localhost:7070/api/v1/list/tag/$(tag) -v
 
 toggle-log:
 	curl http://localhost:7070/api/v1/toggle-logs -d '{}' -v -H "Content-Type: application/json"

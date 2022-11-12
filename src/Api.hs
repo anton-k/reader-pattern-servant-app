@@ -45,7 +45,7 @@ type GetById =
 -- get by tag
 
 type GetByTag =
-  "get" :> "tag" :> Capture "tag" Tag :> Get '[JSON] [Message]
+  "list" :> "tag" :> Capture "tag" Tag :> Get '[JSON] [Message]
 
 --------------------------------------------------------------------------
 -- toggle log
