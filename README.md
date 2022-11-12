@@ -73,14 +73,15 @@ The library `src/` defines types, interfaces, server and handlers
  * `App` - reader pattern monad
  * `Api` - API for the app
  * `Server` - servant server and main envirnment (state) of the service
- * `DI.[Log | Time]` - interfaces for the app and common functions
+ * `DI.[Log | Time | Setup]` - interfaces for the app and common functions
  * `Server.[Save | GetById | GetByTag | ToggleLog]` - handlers of the API-routes
 
 Executable `app/` implements interfaces initialises service state and launchaes the app.
 
  * `Main` - init and launch server
- * `DI.[DB | Log | Time]` - implement interfaces
- * `DI.Db.MockDb` - mock db, should be in separate package but kept here for simplicity
+ * `App.DI.[DB | Log | Time | Setup]` - implement interfaces
+ * `App.State` - mutable state of the app
+ * `App.DI.Db.MockDb` - mock db, should be in separate package but kept here for simplicity
 
 ## Introduction
 
@@ -942,7 +943,7 @@ initLog =
 
 The function `initLog` hides dependency on mutable interface in the logger.
 and we have to face the reality of `isVerbose` mutable `TVar`-state.
-But whaat if it was also an interface? 
+But what if it was also an interface? 
 
 It can be done this way:
 
@@ -951,11 +952,12 @@ It can be done this way:
 -- in the library code
 
 data Env = Env
-  { config  :: Config
-  , log     :: Log
+  { setup :: Setup
+  , log   :: Log
   }
 
-data Config = Config
+-- | Interface for tweaking configs
+data Setup = Setup
   { toggleLogs  :: IO ()
   , swithcToFoo :: FooConfig -> IO () -- ^ other config tweaks of the app
   , useBar      :: BarConfig -> IO ()
@@ -966,13 +968,13 @@ data Config = Config
 
 initEnv :: IO Env
 initEnv = do
-  isVerbose <- newTVarIO True
-  config <- initConfig isVerbose
-  log    <- initLog isVerbose
-  pure $ env config log
+  verboseVar <- newVerboseVar
+  setup <- initSetup verboseVar
+  log <- initLog verboseVar
+  pure $ Env setup log
 ```
 
-Note that `Config` is not a data structure it's an interface
+Note that `Setup` is not a data structure it's an interface
 to trigger changes in the configs of the system.
 And we share the link between logger and config only inside the executable `app`.
 On the level of the library they look decoupled.
