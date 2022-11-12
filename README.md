@@ -65,6 +65,23 @@ We can
 The rest of the article is tutorial explaining the application of Reader pattern
 in Haskell to build web-apps.
 
+### The application structure
+
+The library `src/` defines types, interfaces, server and handlers
+
+ * `Types` - types of the domain
+ * `App` - reader pattern monad
+ * `Api` - API for the app
+ * `Server` - servant server and main envirnment (state) of the service
+ * `DI.[Log | Time]` - interfaces for the app and common functions
+ * `Server.[Save | GetById | GetByTag | ToggleLog]` - handlers of the API-routes
+
+Executable `app/` implements interfaces initialises service state and launchaes the app.
+
+ * `Main` - init and launch server
+ * `DI.[DB | Log | Time]` - implement interfaces
+ * `DI.Db.MockDb` - mock db, should be in separate package but kept here for simplicity
+
 ## Introduction
 
 In this example and tutorial we will learn how to build flexible
@@ -408,6 +425,12 @@ server env =
 and the cool thing is that in all local handlers we don't have to think about servant
 anymore. They should work in tems of our reader monad `App`.
 
+#### Custom messages
+
+For simplicity we use plain `Text` error messages but in real app 
+we should define more fine grained type for ApiError that we can convert 
+to servant errors.
+
 ### Implement interfaces outside of the library
 
 In this example we keep all interfaces separate from the implementation.
@@ -523,6 +546,51 @@ initLog isVerboseVar = ... use verbosity info in the methods
 It hides this connection details behind interface. and leaves us with 
 nice interface. But for this approach we should pass verbosity to
 all logging functions.
+
+### Flexibility of record-style interfaces
+
+I'd like to metion how easy it's to adapt our interfaces. As they are
+expressed as plain functions in the records. 
+Let's consider logging example. We need to define the logging context dedicated
+to specific route. for example we need to prefix the logs with the name of the route.
+
+We can adapt the whole logging interface by plugging the function:
+
+```haskell
+middleLog :: (Text -> Text) -> Log -> Log
+middleLog go logger = Log
+  { logInfo = logger.logInfo . go
+  , logDebug = logger.logDebug . go
+  , logError = logger.logError . go
+  }
+
+addLogContext :: Text -> Log -> Log
+addLogContext contextMesage =
+  middleLog (mappend (contextMesage <> ": "))
+```
+
+In this example we use sort of logging middleware that inserts
+text-processing function prior to user call. We can transform the whole 
+interface with it. And we can use it in the code by passing the logger to concrete API-route:
+
+```haskell
+    saveEnv =
+      Save.Env
+        { db = env.db.save
+        , time = env.time
+        , log = addLogContext "api.save" env.log
+        }
+
+    getByTagEnv =
+      GetByTag.Env
+        { db = env.db.getByTag
+        , log = addLogContext "api.get-tag" env.log
+        }
+```
+Here we transform the common logger defined in top-level envirnment state
+of the service reader and pass it to the local loggers. And all local loggers
+will have this modified logging built into it.
+
 
 ### Keep your environments and interfaces small
 
@@ -913,6 +981,33 @@ This way we are not forced to chose TVar between some other method of
 sharing mutable state. It's all hided from the library.
 By the `Env` we only see the list of available actions 
 that can be performed on the app in terms of interfaces.
+
+### Scaling up
+
+So we have defined our small app. But story does not end there.
+We have to implement new and new API-routes and features and app becomes not so small.
+How to keep it small nonetheless?
+
+I think there is no answer to this. We have to balance on the waves.
+But in this section I'd like to mention osme further steps.
+
+For simplicity I kept all API definition in the single module `Api`.
+In real case we can split it also to modules as we did it with handlers.
+This is a proper place not only for servant API definition but also for all 
+transport types that are used for response and requests. We should keep it 
+separate from domain types.
+
+Also we can go down to microservice route and split the app 
+by groups of logically related methods to separate services.
+On this stage our method with local interfaces can pay off well.
+As we already have separated environments we can define separate 
+apps with local env's becoming top-level ones.
+
+But keep in mind the hidden dependencies of mutable state on the app init level.
+It can also become tangled. I advise instead of direct usage of TVar's to wrap
+them to newtypes and create the modules that provide meaningful interface
+for them so that `TVar` details are hidden. This way it's easier to decouple things
+or see which one depends on which.
 
 ### Conclusion
 
