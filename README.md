@@ -27,9 +27,10 @@ POST: api/v1/toggle-logs
 ```
 
 Applications shows how to  create interfaces for mocks and real instances.
-Also we show how to use interfaces that depen on run-time data 
-and how we can split the top-level interface to smaller ones didicated to concrete methods.
-
+Also we show how to use interfaces that depend on run-time data 
+and how we can split the top-level interface to smaller ones dedicated to concrete methods.
+On save message is augmented with current time stamp which is queried over external service.
+We use `getCurrentTime` for mock but it serves as an example of external dependency.
 
 ### Application user guide
 
