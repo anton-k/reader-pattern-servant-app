@@ -999,6 +999,17 @@ So it becomes the matter of taste and intuition. But starting small with local
 ones I think it pays off and great decision for web-application building.
 As it's much more flexible approach.
 
+### Service configs
+
+Recommended way to organise service settings is with config file
+that is easy to read for humans (for example YAML or TOML formats).
+We can parse the YAML with `yaml` library and parse CLI-arguments with
+`optparse-applicative` library. The code example is in the `app/Config.hs`.
+For our app we can see the available options with:
+
+```
+stack run -- --help
+```
 
 ### Scaling up
 
