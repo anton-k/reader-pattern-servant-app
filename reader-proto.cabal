@@ -102,6 +102,7 @@ executable reader-proto-exe
     , containers
     , deriving-aeson
     , exceptions
+    , immortal
     , mtl
     , reader-proto
     , servant

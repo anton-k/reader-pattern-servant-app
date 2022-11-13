@@ -74,6 +74,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - immortal
     - reader-proto
     - servant-server
     - warp

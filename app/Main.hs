@@ -4,6 +4,8 @@ import Data.Proxy
 import Servant
 import Network.Wai.Handler.Warp (run)
 
+import qualified Control.Immortal as Immortal
+import Control.Concurrent (threadDelay)
 import Server
 import Types
 import DI.Log
@@ -51,5 +53,15 @@ runServer config = do
         , toggleLogs = ToggleLog.Env (addLogContext "api.toggle-log" ilog) isetup
         }
 
-  ilog.logInfo $ "Start server on http://localhost:" <> display config.port
-  run config.port $ serve (Proxy :: Proxy Api) (server env)
+  runImmortal $ do
+    ilog.logInfo $ "Start server on http://localhost:" <> display config.port
+    run config.port $ serve (Proxy :: Proxy Api) (server env)
+
+runImmortal :: IO () -> IO ()
+runImmortal act = do
+  -- start an immortal thread
+  _thread <- Immortal.create $ \ _thread -> act
+
+  -- in the main thread, sleep until interrupted
+  -- (e.g. with Ctrl-C)
+  forever $ threadDelay maxBound
