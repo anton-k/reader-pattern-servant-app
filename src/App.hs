@@ -39,6 +39,8 @@ toHandler e handler = Handler $ ExceptT $ try $ runApp handler e
 toHandler1 :: env -> (req -> App env resp) -> req -> Servant.Handler resp
 toHandler1 env handle a = toHandler env (handle a)
 
+-- | we use plain Text but in real app it's going to be
+-- a Sum type which describes possible exceptions of our app
 newtype ApiError = ApiError Text
 
 throwApi :: ApiError -> App env a

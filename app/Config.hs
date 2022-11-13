@@ -14,9 +14,9 @@ import Options.Applicative
 
 -- | Config for the server
 data Config = Config
-  { db   :: Url
-  , time :: Url
-  , port :: Int
+  { db   :: Url  -- ^ path to DB
+  , time :: Url  -- ^ path to timer service
+  , port :: Int  -- ^ server port
   }
   deriving (Generic, Show)
   deriving (ToJSON, FromJSON) via Vanilla Config
@@ -29,6 +29,10 @@ defaultConfig =
     , port = 7070
     }
 
+-----------------------------------------------------------------
+-- parsing configs with CLI options
+
+-- | CLI args
 data Args = Args
   { config       :: Maybe FilePath
   , portOverride :: Maybe Int   -- ^ an example of option that can override config

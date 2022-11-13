@@ -80,6 +80,7 @@ The library `src/` defines types, interfaces, server and handlers
 Executable `app/` implements interfaces initialises service state and launchaes the app.
 
  * `Main` - init and launch server
+ * `Config` - read server configs from command line arguments
  * `App.DI.[DB | Log | Time | Setup]` - implement interfaces
  * `App.State` - mutable state of the app
  * `App.DI.Db.MockDb` - mock db, should be in separate package but kept here for simplicity
@@ -139,23 +140,22 @@ The main idea is that we use a Reader monad to pass environment to
 different parts of the app. Here is the main type of the application (see `App` module):
 
 ```haskell
-type ApiError = Text
-
-newtype App env a = App (ReaderT env (ExceptT ApiError IO) a)
+newtype App env a = App (ReaderT env IO a)
   deriving newtype
     ( Functor
     , Applicative
     , Monad
     , MonadReader env
-    , MonadError ApiError
     , MonadIO
+    , MonadThrow
+    , MonadCatch
     )
 
 runApp :: App env a -> env -> IO (Either ApiError a)
 runApp (App a) env = runExceptT $ runReaderT a env
 ```
 
-Our main monad `App` is `ReaderT` augmented with `ExceptT` for handling exceptions.
+Our main monad `App` is `ReaderT` over plain `IO`.
 We keep our mutable state in `TVar` inside the `env`. In different parts of the app
 we can read the `env` parts with reade'sr function `asks` and here is the main idea of it.
 
@@ -225,7 +225,7 @@ In Reader pattern we keep internal mutable state of the server inside `TVar`s
 in the environment of the reader. And update it with usual STM routines.
 We need `TVar` or similiar for concurrent access.
 
-For example if our service has configs that can be update by service admins
+For example if our service has configs that can be updated by service admins
 over methods without restarting of the server:
 
 ```haskell
@@ -390,21 +390,19 @@ and inside handlers we should work only in terms of reader `App` monad.
 We can adapt `App` monad to Servant needs with this function
 
 ```haskell
-onRequest :: env -> App env resp -> Servant.Handler resp
-onRequest e handler = do
-  eResp <- liftIO (runApp handler e)
-  either toServantError pure eResp
-  where
-    toServantError err = throwError $ err400 { errBody = BL.fromStrict $ Text.encodeUtf8 err }
+toHandler :: env -> App env resp -> Servant.Handler resp
+toHandler e handler = Handler $ ExceptT $ try $ runApp handler e
 ```
+
+Note that we need to use `try` to capture servant server exceptions.
 And we can define converters for more arguments:
 
 ```haskell
-onRequest1 :: env -> (req -> App env resp) -> req -> Servant.Handler resp
-onRequest1 env handle a = onRequest env (handle a)
+toHandler1 :: env -> (req -> App env resp) -> req -> Servant.Handler resp
+toHandler1 env handle a = toHandler env (handle a)
 
-onRequest2 :: env -> (a -> b -> App env resp) -> a -> b -> Servant.Handler resp
-onRequest2 env handle a b = onRequest env (handle a b)
+toHandler2 :: env -> (a -> b -> App env resp) -> a -> b -> Servant.Handler resp
+toHandler2 env handle a b = toHandler env (handle a b)
 ```
 
 In the servant definition we use it like this:
@@ -412,10 +410,10 @@ In the servant definition we use it like this:
 ```haskell
 server :: Env -> Server Api
 server env =
-       onRequest1 saveEnv Save.handle
-  :<|> onRequest1 getMessageEnv GetMessage.handle
-  :<|> onRequest1 listTagEnv ListTag.handle
-  :<|> onRequest  toggleLogEnv ToggleLog.handle
+       toHandler1 saveEnv Save.handle
+  :<|> toHandler1 getMessageEnv GetMessage.handle
+  :<|> toHandler1 listTagEnv ListTag.handle
+  :<|> toHandler  toggleLogEnv ToggleLog.handle
   where
     -- local env's for methods
     saveEnv    = 
@@ -432,6 +430,22 @@ anymore. They should work in tems of our reader monad `App`.
 For simplicity we use plain `Text` error messages but in real app 
 we should define more fine grained type for ApiError that we can convert 
 to servant errors.
+
+Also as we work with plain `IO`-monad we need to convert our
+exceptions to servant ones so that they can be handled properly.
+For that we use custom `throwApi` function:
+
+```haskell
+import Control.Monad.Catch    (MonadThrow(..), MonadCatch(..))
+import Data.ByteString.Lazy   qualified as BL
+import Data.Text.Encoding     qualified as Text
+...
+
+throwApi :: ApiError -> App env a
+throwApi = throwM . toServantError
+  where
+    toServantError (ApiError err) = err400 { errBody = BL.fromStrict $ Text.encodeUtf8 err }
+```
 
 ### Implement interfaces outside of the library
 
@@ -787,38 +801,22 @@ so with this approach we don't rely on Servant or on big one-for-all `Env`.
 we keep it small, simple and local to the method. 
 It would be painless to make a microservice out of it.
 
-But how we use it in the service? In service we have that big `Env`
-if we need it that keeps track of all interfaces and specialises them
-to the methods on the stage of server definition (see module `Server`):
+But how we use it in the service? In service we have that big `Env`.
+It contains all enironments for the methods:
 
 ```haskell
--- | Service environement
+-- | Service environment by methods
 data Env = Env
-  { log   :: Log
-  , db    :: Db
-  , time  :: Time
-  , setup :: Setup
-  }
-
--- | All DB interfaces by method
-data Db = Db
-  { save       :: Save.Db
-  , getMessage :: GetMessage.Db
-  , listTag    :: ListTag.Db
+  { save        :: Save.Env
+  , getMessage  :: GetMessage.Env
+  , listTag     :: ListTag.Env
+  , toggleLogs  :: ToggleLog.Env
   }
 
 server :: Env -> Server Api
 server env =
-       onRequest1 saveEnv Save.handle
-  :<|> onRequest1 listTagEnv GetMessage.handle
-  where
-    ...
-
-    listTagEnv =
-      ListTag.Env
-        { db = env.db.listTag
-        , log = addContext "api.list-tag" env.log
-        }
+       onRequest1 env.save Save.handle
+  :<|> onRequest1 env.listTag GetMessage.handle
 ```
 
 Here we instantiate concrete environment for the API-method.
@@ -918,20 +916,10 @@ handle tag = do
   -- use validTag from Foo 
 ```
 
-also we need to add `Foor` to `Env` and pass it to route handler in the server definion:
+Note that main service `Env` does not change at all with this change.
+It only changes if we add a new API-route.
 
-```haskell
--- | Main Service environment
-data Env = Env
-  { log   :: Log
-  , db    :: Db
-  , time  :: Time  
-  , setup :: Setup
-  , foo   :: Foo -- new line here
-  }  
-```
-
-and also we pass it to the local env for `ListTag` to make it compile.
+Also we pass it to the local env for `ListTag` to make it compile.
 Again we get no errors on library level and we recompile only two modules if 
 `Foo` is already defined in `DI`.
 
@@ -950,23 +938,6 @@ data Env = Env
 
 data Foo = Foo
   { validTag  :: Tag -> IO Bool 
-  }
-```
-
-Also we add it to the `Env` in the same vein as we added local `Db`-interfaces:
-
-```haskell
--- | Service environement
-data Env = Env
-  { log   :: Log
-  , db    :: Db
-  , time  :: Time
-  , setup :: Setup
-  , foo   :: Foo
-  }
-
-data Foo = Foo
-  { listTag :: ListTag.Foo
   }
 ```
 
