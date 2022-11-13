@@ -75,6 +75,8 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - immortal
+    - optparse-applicative
+    - yaml
     - reader-proto
     - servant-server
     - warp

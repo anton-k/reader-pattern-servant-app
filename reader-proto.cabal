@@ -78,6 +78,7 @@ executable reader-proto-exe
       App.DI.Setup
       App.DI.Time
       App.State
+      Config
       Paths_reader_proto
   hs-source-dirs:
       app
@@ -104,6 +105,7 @@ executable reader-proto-exe
     , exceptions
     , immortal
     , mtl
+    , optparse-applicative
     , reader-proto
     , servant
     , servant-server
@@ -111,6 +113,7 @@ executable reader-proto-exe
     , text
     , time
     , warp
+    , yaml
   default-language: Haskell2010
 
 test-suite reader-proto-test
