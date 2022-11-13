@@ -60,6 +60,7 @@ library
     , bytestring
     , containers
     , deriving-aeson
+    , exceptions
     , mtl
     , servant
     , servant-server
@@ -100,6 +101,7 @@ executable reader-proto-exe
     , bytestring
     , containers
     , deriving-aeson
+    , exceptions
     , mtl
     , reader-proto
     , servant
@@ -137,6 +139,7 @@ test-suite reader-proto-test
     , bytestring
     , containers
     , deriving-aeson
+    , exceptions
     , mtl
     , reader-proto
     , servant

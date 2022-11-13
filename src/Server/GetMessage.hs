@@ -35,4 +35,4 @@ handle messageId = do
     Just msg -> pure msg
     Nothing  -> do
       liftIO $ logError $ "Message not found by id: " <> display messageId
-      throwError "Message not found"
+      throwApi $ ApiError "Message not found"

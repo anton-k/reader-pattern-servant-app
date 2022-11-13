@@ -1,15 +1,22 @@
 -- | Init db service (using mock one for prototype)
 module App.DI.Db
-  ( initDb
+  ( Db(..)
+  , initDb
   ) where
 
 import App.DI.Db.MockDb
 
-import Server (Db(..))
 import Server.Save qualified as Save
 import Server.GetMessage qualified as GetMessage
 import Server.ListTag qualified as ListTag
 import Types
+
+-- | All DB interfaces by method
+data Db = Db
+  { save       :: Save.Db
+  , getMessage :: GetMessage.Db
+  , listTag    :: ListTag.Db
+  }
 
 initDb :: Url -> IO Db
 initDb _url = do
