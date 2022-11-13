@@ -1,7 +1,7 @@
 # Haskell Reader pattern and servant example app
 
 Show case for a small application written with servant and [Reader-pattern](https://www.fpcomplete.com/blog/2017/06/readert-design-pattern/).
-It is example on how to make Dependency Injection in Haskell with Reader-pattern.
+It is an example on how to make Dependency Injection in Haskell with Reader-pattern.
 
 Application allows to save messages with tags. 
 User can create a new message and then user can query it by id
