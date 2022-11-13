@@ -1,4 +1,4 @@
--- | An example of gow to read server configs from YAML
+-- | An example of how to read server configs from YAML
 -- and override them with CLI options
 module Config
   ( Config(..)
