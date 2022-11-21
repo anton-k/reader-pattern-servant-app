@@ -66,6 +66,14 @@ We can
 The rest of the article is tutorial explaining the application of Reader pattern
 in Haskell to build web-apps.
 
+#### Stress tests with k6
+
+ Also we can run stress testing for our server.
+ For that we need to install [`k6`](https://k6.io/) and see
+ the [`README.md`](https://github.com/anton-k/reader-pattern-servant-app/tree/main/test-stress)
+ for docs on how to run them in the directory `test-stress`
+ of this repo (note that it features it's own Makefile).
+
 ### The application structure
 
 The library `src/` defines types, interfaces, server and handlers

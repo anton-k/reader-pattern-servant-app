@@ -29,7 +29,7 @@ runServer config = do
   -- init mutable shared state
   verboseVar <- newVerboseVar
 
-  -- init interfaces (plug in state or interfaces where needed)
+  -- init interfaces
   ilog  <- initLog verboseVar
   idb   <- initDb config.db
   itime <- initTime config.time
