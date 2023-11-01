@@ -307,7 +307,7 @@ With it we can encode our dependencies in contexts and make cool reusable functi
 that work on subsets of our interfaces:
 
 ```haskell
-setWithLog :: (ToJSON a, HasLog env, HasDb a) => req -> App env ()
+setWithLog :: (ToJSON req, HasLog env, HasDb env) => req -> App env ()
 setWithLog req = do
   Log{..} <- asks getLog
   Db{..}  <- asks getDb
@@ -347,7 +347,7 @@ debug :: haslog env => text -> App env ()
 debug = ... -- see example above
 ```
 
-And for eny reader that uses this inerface we define an instance:
+And for any reader that uses this interface we define an instance:
 
 ```haskell
 data SaveEnv = SaveEnv 
